@@ -1,0 +1,17 @@
+# This is a build spec to deploy inter-region multi-vpc network architecture based on specified design parameters
+# This takes input from the vpc configurations file i.e vpc-config.yaml
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo Entered the install phase...
+      - apt-get update -y
+      - apt-get -y install python-pip
+      - pip install awscli --upgrade --user
+      - pip install boto3
+      - pip install pyyaml
+  build:
+    commands:
+      - echo Testing application...
+      - echo Testing started on `date`
