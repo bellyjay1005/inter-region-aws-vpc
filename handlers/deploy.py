@@ -9,8 +9,6 @@ from boto3.session import Session
 # Define global variables
 CONFIGS=sys.argv[1]
 TEMPLATES=sys.argv[2]
-# TEMP='file:///home/ec2-user/environment/jelili.adebello-newhire-training/jelili-newhire-dry-s3-template.yaml'
-# TEMPLATE_BODY='file://${DIR}/${TEMP}'
 
 print('Loading function')
 
@@ -41,21 +39,21 @@ def load_yaml_file(yaml_file):
 
    return config
 
-def build_template_path(template_dir):
-   """
-        Read stack template directory that contains all templates
+# def build_template_path(template_dir):
+#    """
+#         Read stack template directory that contains all templates
         
-        Args:
-            template_dir: directory containing template files to be read
-        Returns:
-            The template file path     
-   """
-   # templates = os.listdir(template_dir)
-   # for template in templates:
-   #    if template.endswith('.yaml'):
-   #       return template
-   template_path = '/Users/jeliliadebello/Documents/multi-vpc-test/'+template_dir
-   return template_path
+#         Args:
+#             template_dir: directory containing template files to be read
+#         Returns:
+#             The template file path
+#    """
+#    # templates = os.listdir(template_dir)
+#    # for template in templates:
+#    #    if template.endswith('.yaml'):
+#    #       return template
+#    template_path = '/Users/jeliliadebello/Documents/multi-vpc-test/'+template_dir
+#    return template_path
 
 def build_stack_parameters(config):
    """
