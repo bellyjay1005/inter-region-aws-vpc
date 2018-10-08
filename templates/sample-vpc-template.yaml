@@ -143,19 +143,19 @@ Outputs:
     Value:
       Ref: VPC 
     Export:
-      Name: !Sub "${AWS::Region}-${AWS::StackName}-VPCID"
+      Name: !Sub "${AWS::StackName}-VPCID"
   PublicNetSubnet:
     Description: "The network public subnet ID"
     Value:
       Ref: PublicSubnet
     Export: 
-      Name: !Sub "${AWS::Region}-${AWS::StackName}-Public-Subnet"
+      Name: !Sub "${AWS::StackName}-Public-Subnet"
   PrivateNetSubnet:
     Description: "The network private subnet ID"
     Value:
       Ref: PrivateSubnet
     Export: 
-      Name: !Sub "${AWS::Region}-${AWS::StackName}-Private-Subnet"
+      Name: !Sub "${AWS::StackName}-Private-Subnet"
 
 
 
