@@ -15,4 +15,4 @@ phases:
     commands:
       - echo Testing application...
       - echo Testing started on `date`
-      - python ${DEPLOY_VPC} ${VPC_CONFIGS}
+      - python ${DEPLOY_VPC} ${VPC_CONFIGS} ${VPC_TEMPLATES}
