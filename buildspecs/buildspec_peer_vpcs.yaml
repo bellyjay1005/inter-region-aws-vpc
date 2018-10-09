@@ -1,4 +1,4 @@
-# This is a build spec to deploy inter-region multi-vpc network architecture based on specified design parameters
+# This is a build spec to create multiple peering connection between different vpcs including inter-region multi-vpc network architecture.
 # This takes input from the vpc configurations file i.e vpc-config.yaml
 version: 0.2
 
@@ -13,6 +13,6 @@ phases:
       - pip install pyyaml
   build:
     commands:
-      - echo Deploying application...
-      - echo Deployment started on `date`
-      - python ${DEPLOY_VPC} ${VPC_CONFIGS} ${VPC_TEMPLATES}
+      - echo Building application...
+      - echo Building started on `date`
+      - python ${PEER_VPC} ${VPC_CONFIGS}

@@ -6,10 +6,6 @@ import botocore
 import traceback
 from boto3.session import Session
 
-# Define global variables
-CONFIGS=sys.argv[1]
-TEMPLATES=sys.argv[2]
-
 print('Loading function')
 
 
@@ -38,22 +34,6 @@ def load_yaml_file(yaml_file):
      raise Exception('Input configuration parameters could not be decoded as YAML')
 
    return config
-
-# def build_template_path(template_dir):
-#    """
-#         Read stack template directory that contains all templates
-        
-#         Args:
-#             template_dir: directory containing template files to be read
-#         Returns:
-#             The template file path
-#    """
-#    # templates = os.listdir(template_dir)
-#    # for template in templates:
-#    #    if template.endswith('.yaml'):
-#    #       return template
-#    template_path = '/Users/jeliliadebello/Documents/multi-vpc-test/'+template_dir
-#    return template_path
 
 def build_stack_parameters(config):
    """
@@ -216,6 +196,9 @@ class vpc_deployment_manager(object):
          print('Stack creation started....')   
 
 def main():
+      # Define global variables
+      CONFIGS=sys.argv[1]
+      TEMPLATES=sys.argv[2]
       setup_data = load_yaml_file(CONFIGS)
       print('Listing configuration to setup VPC in specified regions.......')
 
@@ -246,7 +229,7 @@ def main():
             # Deploy Stack
             stacks = vpc_deployment_manager(single_setup_data)
             stacks.create_or_update_vpc_stack(stack_name, template_body, parameter_values)
-            print('provisioning inter-Region multi-vpc netwrok environment.......')
+            print('provisioning inter-Region multi-vpc network environment.......')
 
 
       except Exception as e:
