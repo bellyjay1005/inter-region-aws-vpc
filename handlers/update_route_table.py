@@ -71,15 +71,15 @@ def create_or_update_vpc_peering_route(configs):
 			config: dictionary containing parameter values to be read
 		Returns:
 			dictionary containing - 
-									'accepter_vpc_id'
-									'requester_vpc_id' 
-								    'peer_connection_id' 
-								    'requester_route_table'
-								    'requester_cidr_block'
-								    'accepter_cidr_block' 
-								    'accepter_region'
-								    'accepter_route_table'
-								    'requester_region' 
+				'accepter_vpc_id'
+				'requester_vpc_id' 
+			    'peer_connection_id' 
+			    'requester_route_table'
+			    'requester_cidr_block'
+			    'accepter_cidr_block' 
+			    'accepter_region'
+			    'accepter_route_table'
+			    'requester_region' 
 	"""
 	route_configs = []
 
