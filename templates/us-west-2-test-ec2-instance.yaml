@@ -1,0 +1,89 @@
+
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Launch a sample EC2 Instance for testing VPC peering connection"
+Parameters:
+  T2InstanceType:
+    Description: "Enter a EC2 T2 instance type"
+    Type: String
+    Default: t2.micro
+  EC2AMIID:
+      Description: "Enter the EC2 AMI ID i.e Ubuntu - ami-5866eb68 (public)"
+      Type: String
+      Default: ami-0d1000aff9a9bad89
+Resources:
+  InstanceSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow ICMP and SSH traffic access via port 22"
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: '-1'
+        ToPort: '-1'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: '-1'
+        ToPort: '-1'
+        CidrIp: 0.0.0.0/0
+      VpcId: vpc-0ad078cde6e5d970a
+  InstanceSecurityGroup2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Allow ICMP and SSH traffic access via port 22"
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: '-1'
+        ToPort: '-1'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: icmp
+        FromPort: '-1'
+        ToPort: '-1'
+        CidrIp: 0.0.0.0/0
+      VpcId: vpc-0ad5830c8d5de7fa8
+  Instance1IPAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref EC2Instance1
+      Domain: vpc
+  Instance2IPAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref EC2Instance2
+      Domain: vpc
+  EC2Instance1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref EC2AMIID
+      KeyName: jelili-us-west-2-keypair
+      InstanceType:
+        Ref: T2InstanceType
+      SubnetId: subnet-0f4c9145ade603357
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup1
+  EC2Instance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref EC2AMIID
+      KeyName: jelili-us-west-2-keypair
+      InstanceType:
+        Ref: T2InstanceType
+      SubnetId: subnet-095203ea3d4307ac2
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup2
