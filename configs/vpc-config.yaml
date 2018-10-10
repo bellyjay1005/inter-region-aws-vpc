@@ -1,0 +1,22 @@
+---
+- Region: us-west-1
+  vpc_name: vpc-a
+  Template_file: sample-vpc-template.yaml
+  Parameters:
+    VPCCIDRBlock: 10.0.0.0/16
+    PublicSubnetCIDRBlock: 10.0.0.0/24
+    PrivateSubnetCIDRBlock: 10.0.1.0/24
+- Region: us-west-1
+  vpc_name: vpc-b
+  Template_file: sample-vpc-template.yaml
+  Parameters:
+    VPCCIDRBlock: 196.10.0.0/16
+    PublicSubnetCIDRBlock: 196.10.0.0/24
+    PrivateSubnetCIDRBlock: 196.10.1.0/24
+- Region: us-west-2
+  vpc_name: vpc-c
+  Template_file: sample-vpc-template.yaml
+  Parameters:
+    VPCCIDRBlock: 172.16.0.0/16
+    PublicSubnetCIDRBlock: 172.16.0.0/24
+    PrivateSubnetCIDRBlock: 172.16.1.0/24
