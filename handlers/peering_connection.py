@@ -113,7 +113,10 @@ def establish_vpc_connection(main_vpc, pairing_vpcs):
 		accepter_vpc_id = vpc ['VPCID']
 
 		peering_connection_id = request_vpc_peering_connection(accepter_vpc_id, requester_vpc_id, accepter_region, requester_region)
+
+		# wait for peering lifecycle to transition from 'provisioning' to 'active'
 		sleep(5)
+		
 		peering_connection_status = accept_vpc_peering_connection(peering_connection_id, accepter_region)
 		status = {}
 		status['Connection ID'] = peering_connection_id
