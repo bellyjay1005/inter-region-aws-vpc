@@ -1,0 +1,321 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Build an AWS CodePipeline pipeline that orchestrate the deployment of inter-Region multi-VPC network architecture. Implement change detection method from GitHub and submit source artifact to a S3 location before building the pipeline. The pipeline uses the artifact to automatically create stacks and manage each peering connection between deployed VPCs networks."
+Parameters:
+  GitWebHookToken:
+    Description: "Enter a valid secret token for GitHub webhook"
+    Type: String
+    NoEcho: true
+  GitHubAccountName:
+    Description: "Enter a GitHub account name for Source stage"
+    Type: String
+  GitHubRepoName:
+    Description: "Enter a GitHub repository name for Source stage"
+    Type: String
+  GitHubBranchName:
+    Description: "Enter a GitHub branch name for Source stage i.e master"
+    Type: String
+  ArtifactStoreBucketName:
+    Description: "Enter a bucket name to store built artifacts"
+    Type: String
+  PipelineName:
+    Description: "Enter a name for your pipeline"
+    Type: String
+  VPCCreateStackHandler:
+    Description: "Enter the stack creation or update script i.e deploy.py"
+    Type: String
+  VPCPeeringHandler:
+    Description: "Enter the vpc-peering connection script i.e peering_connection.py"
+    Type: String
+  PeeringRouteUpdateHandler:
+    Description: "Enter a script to update inter-region vpc using vpc peering connections i.e update_route.py"
+    Type: String
+  VPCStackConfig:
+    Description: "Enter the stack configuration file for VPC"
+    Type: String
+  VPCDeployProjectName:
+    Description: "Enter a project name for VPC stacks deployment stage"
+    Type: String
+  VPCPeeringProjectName:
+    Description: "Enter a project name for VPCs connection peering stage"
+    Type: String
+  RouteTableUpdateProjectName:
+    Description: "Enter a project name for updating each VPC peering connection route"
+    Type: String
+  DeployVPCStageBuildSpec:
+    Description: "Enter a name for vpc deployment buildspec.yaml file i.e buildspec_deploy_vpc.yaml"
+    Type: String
+  ConnectVPCsBuildSpec:
+    Description: "Enter a name for vpc peering connection buildspec.yaml file i.e buildspec_peer_vpcs.yaml"
+    Type: String
+  UpdateRouteTableBuildSpec:
+    Description: "Enter a name for vpc peering connection route updates buildspec.yaml file i.e buildspec_update.yaml"
+    Type: String
+    
+Resources:
+# Create Bucket for storing pipeline artifacts
+  BlueGreenArtifactStore:
+      DeletionPolicy: Retain
+      Type: AWS::S3::Bucket
+      Properties: 
+        BucketName: !Ref ArtifactStoreBucketName
+        VersioningConfiguration:
+          Status: Enabled
+          
+# Create Pipeline for BLUE/GREEN deployment
+  VPCPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref ArtifactStoreBucketName
+        Type: S3
+      DisableInboundStageTransitions: []
+      Name: !Ref "PipelineName"
+      RoleArn: !GetAtt [PipelineRole, Arn]
+      Stages:
+        - Name: SourceStage
+          Actions:
+            -
+              Name: GitHubArtifacts
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: '1'
+              Configuration:
+                Owner: !Ref 'GitHubAccountName'
+                Repo: !Ref 'GitHubRepoName'
+                PollForSourceChanges: true
+                Branch: !Ref 'GitHubBranchName'
+                OAuthToken: !Ref 'GitWebHookToken'
+              OutputArtifacts:
+                - Name: GitHubArtifacts
+              RunOrder: '1'
+        - Name: DeployStage
+          Actions:
+            -
+              Name: DeployVPC
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: GitHubArtifacts
+              Configuration:
+                ProjectName: !Ref CreateVPC
+              OutputArtifacts:
+                - Name: PeeringParameters
+              RunOrder: '1'
+            -
+              Name: PeerVPC
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: GitHubArtifacts
+              Configuration:
+                ProjectName: !Ref PeerVPC
+              OutputArtifacts:
+                - Name: ConnectionStatus
+              RunOrder: '2'
+            -
+              Name: UpdatePeeringRoute
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              InputArtifacts:
+                - Name: GitHubArtifacts
+              Configuration:
+                ProjectName: !Ref UpdatePeeringRouteTable
+              OutputArtifacts:
+                - Name: RouteConfigs
+              RunOrder: '3'
+              
+# Define CodeBuild Projects for test stages
+  CreateVPC:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: S3
+        Location: !Sub "${ArtifactStoreBucketName}/build"
+      Description: "A build project to deploy VPC(s) configuration per specified region(s) based on CFN template(s)"
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:2.7.12
+        EnvironmentVariables:
+          - Name: VPC_CONFIGS
+            Value: !Ref VPCStackConfig
+            Type: PLAINTEXT
+          - Name: DEPLOY_VPC
+            Value: !Ref VPCCreateStackHandler
+            Type: PLAINTEXT
+          - Name: VPC_TEMPLATES
+            Value: templates/
+            Type: PLAINTEXT
+      Name: !Ref VPCDeployProjectName
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref DeployVPCStageBuildSpec
+  PeerVPC:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: S3
+        Location: !Sub "${ArtifactStoreBucketName}/build"
+      Description: "A build project to establish VPC(s) connections per specified region(s) using python SDK"
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:2.7.12
+        EnvironmentVariables:
+          - Name: VPC_CONFIGS
+            Value: !Ref VPCStackConfig
+            Type: PLAINTEXT
+          - Name: PEER_VPC
+            Value: !Ref VPCPeeringHandler
+            Type: PLAINTEXT
+      Name: !Ref VPCPeeringProjectName
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref ConnectVPCsBuildSpec
+  UpdatePeeringRouteTable:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: S3
+        Location: !Sub "${ArtifactStoreBucketName}/build"
+      Description: "A build project to update the public route table for each peering connections to include a route across different VPCs"
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:2.7.12
+        EnvironmentVariables:
+          - Name: VPC_CONFIGS
+            Value: !Ref VPCStackConfig
+            Type: PLAINTEXT
+          - Name: UPDATE_ROUTE
+            Value: !Ref PeeringRouteUpdateHandler
+            Type: PLAINTEXT
+      Name: !Ref RouteTableUpdateProjectName
+      ServiceRole: !Ref CodeBuildRole
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Ref UpdateRouteTableBuildSpec
+
+# Define required policies for all service execution roles permission needed for CodePipeline
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodePipelineAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 'cloudformation:CreateStack'
+                  - 'cloudformation:DescribeStacks'
+                  - 'cloudformation:DeleteStack'
+                  - 'cloudformation:UpdateStack'
+                  - 'cloudformation:SetStackPolicy'
+                  - 'elasticloadbalancing:*'
+                  - 'ec2:*'
+                  - 'autoscaling:*'
+                  - 'logs:*'
+                Effect: Allow
+                Resource: '*'
+              - Action:
+                  - 'iam:PassRole'
+                Effect: Allow
+                Resource:
+                  - !GetAtt CFNRole.Arn
+                  - !GetAtt CodeBuildRole.Arn
+              - Action:
+                  - 's3:*'
+                Effect: Allow
+                Resource:
+                  - '*'
+              - Action:
+                - 'codebuild:Create*'
+                - 'codebuild:BatchGet*'
+                - 'codebuild:StartBuild'
+                - 'codebuild:StopBuild'
+                - 'codebuild:Update*'
+                Effect: Allow
+                Resource:
+                  - '*'
+  CFNRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [cloudformation.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CloudFormationRole
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 's3:*'
+                  - 'ec2:*'
+                  - 'autoscaling:*'
+                  - 'elasticloadbalancing:*'
+                  - 'cloudwatch:*'
+                  - 'logs:*'
+                  - 'iam:PassRole'
+                Effect: Allow
+                Resource: '*' 
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codebuild.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - 'logs:Create*'
+                  - 'logs:Put*'
+                  - 'ec2:*'
+                  - 'cloudformation:*'
+                  - 'iam:PassRole'
+                Effect: Allow
+                Resource: '*'
+              - Action:
+                  - 's3:*'
+                Effect: Allow
+                Resource:
+                  - '*'

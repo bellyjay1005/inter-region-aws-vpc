@@ -1,0 +1,65 @@
+[{
+        "ParameterKey": "GitWebHookToken",
+        "ParameterValue": "GIT_WEBHOOK_TOKEN_VALUE"
+    },
+    {
+        "ParameterKey": "GitHubAccountName",
+        "ParameterValue": "bellyjay1005"
+    },
+    {
+        "ParameterKey": "GitHubRepoName",
+        "ParameterValue": "multi-vpc-test"
+    },
+    {
+        "ParameterKey": "GitHubBranchName",
+        "ParameterValue": "week9-codepipeline"
+    },
+    {
+        "ParameterKey": "ArtifactStoreBucketName",
+        "ParameterValue": "jelili-vpc-pipeline-demo"
+    },
+    {
+        "ParameterKey": "PipelineName",
+        "ParameterValue": "vcp-pipeline-demo"
+    },
+    {
+        "ParameterKey": "VPCStackConfig",
+        "ParameterValue": "configs/vpc-config.yaml"
+    },
+    {
+        "ParameterKey": "VPCDeployProjectName",
+        "ParameterValue": "deploy-inter-region-vpc"
+    },
+    {
+        "ParameterKey": "VPCPeeringProjectName",
+        "ParameterValue": "connect-inter-region-vpcs"
+    },
+    {
+        "ParameterKey": "DeployVPCStageBuildSpec",
+        "ParameterValue": "buildspecs/buildspec_deploy_vpc.yaml"
+    },
+    {
+        "ParameterKey": "ConnectVPCsBuildSpec",
+        "ParameterValue": "buildspecs/buildspec_peer_vpcs.yaml"
+    },
+    {
+        "ParameterKey": "VPCCreateStackHandler",
+        "ParameterValue": "handlers/deploy.py"
+    },
+    {
+        "ParameterKey": "VPCPeeringHandler",
+        "ParameterValue": "handlers/peering_connection.py"
+    },
+    {
+        "ParameterKey": "PeeringRouteUpdateHandler",
+        "ParameterValue": "handlers/update_route_table.py"
+    },
+    {
+        "ParameterKey": "RouteTableUpdateProjectName",
+        "ParameterValue": "update-peering-route-tables"
+    },
+    {
+        "ParameterKey": "UpdateRouteTableBuildSpec",
+        "ParameterValue": "buildspecs/buildspec_update_routes.yaml"
+    }
+]
