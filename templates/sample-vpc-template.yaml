@@ -26,6 +26,7 @@ Resources:
         Ref: VPC
       CidrBlock:
         Ref: PublicSubnetCIDRBlock
+      MapPublicIpOnLaunch: true
   PrivateSubnet:
     Type: AWS::EC2::Subnet
     Properties:

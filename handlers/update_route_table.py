@@ -71,15 +71,15 @@ def create_or_update_vpc_peering_route(configs):
 			config: dictionary containing parameter values to be read
 		Returns:
 			dictionary containing - 
-									'accepter_vpc_id'
-									'requester_vpc_id' 
-								    'peer_connection_id' 
-								    'requester_route_table'
-								    'requester_cidr_block'
-								    'accepter_cidr_block' 
-								    'accepter_region'
-								    'accepter_route_table'
-								    'requester_region' 
+				'accepter_vpc_id'
+				'requester_vpc_id' 
+				'peer_connection_id' 
+				'requester_route_table'
+				'requester_cidr_block'
+				'accepter_cidr_block' 
+				'accepter_region'
+				'accepter_route_table'
+				'requester_region' 
 	"""
 	route_configs = []
 
@@ -116,9 +116,20 @@ def create_or_update_vpc_peering_route(configs):
 				route_configs.append(vpc_data)		
 			return route_configs
 
+	except botocore.exceptions.ClientError as e:
+		if e.response['Error']['Message'] == 'RouteAlreadyExists':
+			print(e)
+			return
+
+		else:
+			# If any other Client error exceptions which we didn't expect are raised
+			# then fail the route update and log the exception message.
+			print('Function failed due to exception.')
+			print(e)
+
 	except Exception as e:
 		# If any other exceptions which we didn't expect are raised
-		# then fail the dictionary creation and log the exception message.
+		# then fail the route update and log the exception message.
 		print('Function failed due to exception.')
 		print(e)
 		traceback.print_exc()
@@ -131,14 +142,15 @@ def main():
 	try:
 		# Load user defined configuration yaml file
 		setup_data = peering_connection.load_yaml_file(CONFIGS) 
-		# vpc_region_keypairs = peering_connection.get_vpc_ids(CONFIGS)
-
-		# Create a clone of the user configuration and update peering route table
+		# Create a clone of configuration data to work with
 		setup_data_clone = list(setup_data)
-		print(create_or_update_vpc_peering_route(setup_data_clone))
 
-		# iterate through rest of the cloned list to update route for remaining requester and accepter vpcs
+		# Iterate through a cloned list to update route for requester and accepter vpcs
 		for i in range(1, len(setup_data_clone)):
+
+			# Create a clone of the user configuration and update peering route table 
+			# using first item in the user defined configuration file
+			print(create_or_update_vpc_peering_route(setup_data_clone))
 			configs = get_popped_configs(setup_data_clone)
 			setup_data_clone = list(configs)
 			if len(configs) < 1:

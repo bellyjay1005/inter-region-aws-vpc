@@ -20,3 +20,10 @@
     VPCCIDRBlock: 172.16.0.0/16
     PublicSubnetCIDRBlock: 172.16.0.0/24
     PrivateSubnetCIDRBlock: 172.16.1.0/24
+- Region: us-west-2
+  vpc_name: vpc-d
+  Template_file: sample-vpc-template.yaml
+  Parameters:
+    VPCCIDRBlock: 10.16.0.0/16
+    PublicSubnetCIDRBlock: 10.16.0.0/24
+    PrivateSubnetCIDRBlock: 10.16.1.0/24
