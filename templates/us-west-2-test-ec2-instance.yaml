@@ -57,16 +57,6 @@ Resources:
         ToPort: '-1'
         CidrIp: 0.0.0.0/0
       VpcId: vpc-0ad5830c8d5de7fa8
-  Instance1IPAddress:
-    Type: AWS::EC2::EIP
-    Properties:
-      InstanceId: !Ref EC2Instance1
-      Domain: vpc
-  Instance2IPAddress:
-    Type: AWS::EC2::EIP
-    Properties:
-      InstanceId: !Ref EC2Instance2
-      Domain: vpc
   EC2Instance1:
     Type: AWS::EC2::Instance
     Properties:
