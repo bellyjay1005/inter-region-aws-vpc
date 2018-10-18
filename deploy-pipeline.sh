@@ -29,7 +29,7 @@ GIT_WEBHOOK_TOKEN="$(aws ssm get-parameter \
 sed -i "s/GIT_WEBHOOK_TOKEN_VALUE/$GIT_WEBHOOK_TOKEN/g" ${PIPELINE_PARAMETERS}
 
 # Create CodePipeline Pipeline to deploy pipeline
-aws cloudformation update-stack \
+aws cloudformation create-stack \
     --stack-name ${PIPELINE_STACKNAME} \
     --template-body ${TEMP_BODY} \
     --parameters ${PARAM_BODY} \
@@ -38,6 +38,6 @@ aws cloudformation update-stack \
     
 # Wait for stack creation condition to be satisfied before returning values
 aws cloudformation wait \
-  stack-update-complete \
+  stack-create-complete \
   --region ${REGION} \
   --stack-name ${PIPELINE_STACKNAME}

@@ -20,7 +20,7 @@
     },
     {
         "ParameterKey": "PipelineName",
-        "ParameterValue": "vcp-pipeline-demo"
+        "ParameterValue": "vpc-pipeline-demo"
     },
     {
         "ParameterKey": "VPCStackConfig",

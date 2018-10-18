@@ -53,16 +53,16 @@ Parameters:
     
 Resources:
 # Create Bucket for storing pipeline artifacts
-  BlueGreenArtifactStore:
-      DeletionPolicy: Retain
-      Type: AWS::S3::Bucket
-      Properties: 
-        BucketName: !Ref ArtifactStoreBucketName
-        VersioningConfiguration:
-          Status: Enabled
+  ArtifactStore:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketName: !Ref ArtifactStoreBucketName
+      VersioningConfiguration:
+        Status: Enabled
           
 # Create Pipeline for BLUE/GREEN deployment
   VPCPipeline:
+    DependsOn: ArtifactStore
     Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
